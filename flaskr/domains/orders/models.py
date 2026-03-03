@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, relationship
 from flaskr.core.base.model import BaseModel, mapped_column, mapped_foreign_key
 
 if TYPE_CHECKING:
+    from flaskr.domains.orderDetails.models import OrderDetail
+    from flaskr.domains.tables.models import Table
     from flaskr.domains.user.models import User
 
 
@@ -20,6 +22,10 @@ class Order(BaseModel):
 
     user_id: Mapped[int] = mapped_foreign_key("users.id")
     user: Mapped["User"] = relationship(back_populates="orders")
+    table_id: Mapped[int] = mapped_foreign_key("tables.id")
+    table: Mapped["Table"] = relationship(back_populates="orders")
+
+    order_details: Mapped[list["OrderDetail"]] = relationship(back_populates="order")
 
     @property
     def serialize(self) -> Dict:

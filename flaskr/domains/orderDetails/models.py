@@ -1,0 +1,40 @@
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Dict
+
+from sqlalchemy import DateTime, Float, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from flaskr.core.base.model import BaseModel, mapped_foreign_key
+
+if TYPE_CHECKING:
+    from flaskr.domains.orders.models import Order
+    from flaskr.domains.product.models import Product
+
+
+class OrderDetail(BaseModel):
+    __tablename__ = "order_details"
+
+    order_id: Mapped[int] = mapped_column(
+        Integer, mapped_foreign_key("orders.id"), primary_key=True
+    )
+    product_id: Mapped[int] = mapped_column(
+        Integer, mapped_foreign_key("product.id"), primary_key=True
+    )
+    quantity: Mapped[int] = mapped_column(Integer)
+    unit_price: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+    order: Mapped["Order"] = relationship(back_populates="order_details")
+    product: Mapped["Product"] = relationship(back_populates="order_details")
+
+    @property
+    def serialize(self) -> Dict:
+        return {
+            "order_id": self.order_id,
+            "product_id": self.product_id,
+            "quantity": self.quantity,
+            "unit_price": self.unit_price,
+            "created_at": self.created_at.isoformat(),
+        }
