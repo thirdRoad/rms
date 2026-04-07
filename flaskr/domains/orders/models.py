@@ -25,7 +25,9 @@ class Order(BaseModel):
     table_id: Mapped[int] = mapped_foreign_key("tables.id")
     table: Mapped["Table"] = relationship(back_populates="orders")
 
-    order_details: Mapped[list["OrderDetail"]] = relationship(back_populates="order")
+    order_details: Mapped[list["OrderDetail"]] = relationship(
+        "OrderDetail", back_populates="order", cascade="all, delete-orphan"
+    )
 
     @property
     def serialize(self) -> Dict:

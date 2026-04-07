@@ -28,7 +28,7 @@ class OrderDetail(BaseModel):
         DateTime, default=lambda: datetime.now(timezone.utc)
     )
 
-    order: Mapped["Order"] = relationship(back_populates="order_details")
+    order: Mapped["Order"] = relationship("Order", back_populates="order_details")
     product: Mapped["Product"] = relationship(back_populates="order_details")
 
     @property

@@ -1,6 +1,7 @@
 from typing import List
 
-from sqlalchemy import select
+from flask import abort
+from sqlalchemy import delete, select
 
 from flaskr.core.base.repository import BaseRepository
 from flaskr.core.extensions import db
@@ -35,13 +36,16 @@ class OrderDetailsRepository(BaseRepository[OrderDetail]):
         return False
 
     def delete_all_by_order_id(self, order_id: int) -> bool:
-        query = select(self.model).filter_by(order_id=order_id)
-        results = db.session.execute(query).scalars().all()
+        exists = (
+            db.session.query(OrderDetail)
+            .filter(OrderDetail.order_id == order_id)
+            .first()
+        )
+        if not exists:
+            abort(404, description="OrderDetail for this order not found")
 
-        for item in results:
-            db.session.delete(item)
-
-        db.session.flush()
+        stmt = delete(OrderDetail).where(OrderDetail.order_id == order_id)
+        db.session.execute(stmt)
         return True
 
     def upsert_item(
