@@ -1,13 +1,16 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 
 from sqlalchemy import DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from flaskr.core.base.model import BaseModel
+
+if TYPE_CHECKING:
+    from flaskr.domains.orders.models import Order
 
 
 class TableStatus(Enum):
@@ -27,6 +30,8 @@ class Table(BaseModel):
         DateTime, default=lambda: datetime.now(timezone.utc)
     )
     last_updated: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+    orders: Mapped[list["Order"]] = relationship(back_populates="table")
 
     @property
     def serialize(self) -> Dict:
