@@ -2,6 +2,7 @@ from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.domains.user.services import UserService
+from flaskr.domains.user.validators import UserCreateValidator, UserUpdateValidator
 
 from . import bp
 
@@ -14,14 +15,8 @@ class UserListAPI(BaseRoutes):
         return self.format_response(data=users_data)
 
     def post(self):
-        data = request.get_json()
-        new_user = self.service.create_new_user(
-            username=data.get("username"),
-            password=data.get("password"),
-            display_name=data.get("display_name"),
-            email=data.get("email"),
-            role_id=data.get("role_id"),
-        )
+        data = UserCreateValidator().validate_data(request.get_json())
+        new_user = self.service.create_new_user(data=data)
 
         response = self.format_response(data=new_user)
         return response, 201
@@ -35,7 +30,7 @@ class UserDetailAPI(BaseRoutes):
         return self.format_response(data=user)
 
     def patch(self, user_id: int):
-        data = request.get_json()
+        data = UserUpdateValidator().validate_data(request.get_json())
 
         response = self.service.update_item(item_id=user_id, data=data)
         return self.format_response(data=response)

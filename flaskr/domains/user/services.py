@@ -21,21 +21,10 @@ class UserService(BaseService):
         response["role"] = {"id": user.role.id, "name": user.role.name}
         return response
 
-    def create_new_user(
-        self,
-        username: str = None,
-        password: str = None,
-        display_name: str = None,
-        email: str = None,
-        role_id: int = None,
-    ) -> Dict | None:
+    def create_new_user(self, data: Dict[str, Any]) -> Dict | None:
         return self.create_new_item(
             model_class=User,
-            unique_key=username,
-            stun_name="username",
-            username=username,
-            password=password,
-            display_name=display_name,
-            email=email,
-            role_id=role_id,
+            column_name="username",
+            unique_key=data["username"],
+            **data,
         )
