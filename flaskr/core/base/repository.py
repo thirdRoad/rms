@@ -20,7 +20,7 @@ class BaseRepository(Generic[T]):
     def get_by_name(self, column_name: str, value: Any) -> Optional[T]:
         filter_criteria = {column_name: value}
         query = select(self.model).filter_by(**filter_criteria)
-        return db.session.execute(query).one_or_none()
+        return db.session.execute(query).scalars().one_or_none()
 
     def update(self, item_id: int, data: Dict) -> bool:
         entity = db.session.get(self.model, item_id)
