@@ -12,8 +12,8 @@ class UserCreateValidator(BaseValidator):
 
 
 class UserUpdateValidator(BaseValidator):
-    username = fields.Str(validate=validate.Length(min=3, max=50))
-    password = fields.Str(validate=validate.Length(min=6))
-    display_name = fields.Str()
+    username = fields.Str(validate=validate.Length(min=3, max=32))
+    password = fields.Str(validate=validate.Length(min=6, max=128))
+    display_name = fields.Str(validate=validate.Length(min=3, max=16))
     email = fields.Email()
     role_id = fields.Int()
