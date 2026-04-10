@@ -4,7 +4,7 @@ from flask import abort
 
 from flaskr.core.base.services import BaseService
 from flaskr.core.extensions import db
-from flaskr.domains.orderDetails import OrderDetail
+from flaskr.domains.orderDetails.models import OrderDetail
 from flaskr.domains.orderDetails.repository import OrderDetailsRepository
 from flaskr.domains.orders.models import Order
 from flaskr.domains.orders.repository import OrderRepository
