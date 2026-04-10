@@ -8,6 +8,7 @@ from flaskr.core.base.model import BaseModel, mapped_foreign_key
 
 if TYPE_CHECKING:
     from flaskr.domains.category.models import Category
+    from flaskr.domains.orderDetails.models import OrderDetail
 
 
 class Product(BaseModel):
@@ -23,6 +24,8 @@ class Product(BaseModel):
 
     category_id: Mapped[int] = mapped_foreign_key("category.id")
     category: Mapped["Category"] = relationship(back_populates="products")
+
+    order_details: Mapped[list["OrderDetail"]] = relationship(back_populates="product")
 
     @property
     def serialize(self) -> Dict:
