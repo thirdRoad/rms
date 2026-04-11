@@ -2,6 +2,7 @@ from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.domains.orders.services import OrderService
+from flaskr.domains.orders.validators import OrderCreateValidator, OrderUpdateValidator
 
 from . import bp
 
@@ -14,12 +15,8 @@ class OrderListAPI(BaseRoutes):
         return self.format_response(data=order_data)
 
     def post(self):
-        data = request.get_json()
-        self.service.create_new_order(
-            user_id=data.get("user_id"),
-            table_id=data.get("table_id"),
-            items=data.get("items"),
-        )
+        data = OrderCreateValidator().validate_data(request.get_json())
+        self.service.create_new_order(data=data)
         response = data
         return response, 201
 
@@ -28,7 +25,7 @@ class OrderItemsAPI(BaseRoutes):
     service = OrderService()
 
     def get(self, order_id: int):
-        response = self.service.get_by_Order_id_orderdetails(order_id=order_id)
+        response = self.service.get_by_order_id_orderdetails(order_id=order_id)
         return self.format_response(data=response)
 
 
@@ -36,14 +33,10 @@ class OrderUpdateAPI(BaseRoutes):
     service = OrderService()
 
     def patch(self, order_id: int, product_id: int):
-        data = request.get_json()
-        quantity = data.get("quantity")
-        unit_price = data.get("unit_price")
+        data = OrderUpdateValidator().validate_data(request.get_json())
+        quantity = data["quantity"]
         response = self.service.update_order_products(
-            order_id=order_id,
-            product_id=product_id,
-            quantity=quantity,
-            unit_price=unit_price,
+            order_id=order_id, product_id=product_id, quantity=quantity
         )
 
         return self.format_response(data=response)

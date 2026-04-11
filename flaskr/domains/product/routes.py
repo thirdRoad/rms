@@ -2,6 +2,10 @@ from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.domains.product.services import ProductService
+from flaskr.domains.product.validators import (
+    ProductCreateValidator,
+    ProductUpdateValidator,
+)
 
 from . import bp
 
@@ -14,13 +18,8 @@ class ProductListAPI(BaseRoutes):
         return self.format_response(data=users_data)
 
     def post(self):
-        data = request.get_json()
-        new_product = self.service.create_new_product(
-            name=data.get("name"),
-            stock=data.get("stock"),
-            price=data.get("price"),
-            category_id=data.get("category_id"),
-        )
+        data = ProductCreateValidator().validate_data(request.get_json())
+        new_product = self.service.create_new_product(data=data)
 
         response = self.format_response(data=new_product)
         return response, 201
@@ -34,7 +33,7 @@ class ProductDetailAPI(BaseRoutes):
         return self.format_response(data=product)
 
     def patch(self, product_id: int):
-        data = request.get_json()
+        data = ProductUpdateValidator().validate_data(request.get_json())
 
         response = self.service.update_item(item_id=product_id, data=data)
         return self.format_response(data=response)

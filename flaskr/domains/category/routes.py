@@ -3,6 +3,7 @@ from flask import request
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.domains.category import bp
 from flaskr.domains.category.services import CategoryService
+from flaskr.domains.category.validators import CategoryValidator
 
 
 class CategoryListAPI(BaseRoutes):
@@ -13,8 +14,8 @@ class CategoryListAPI(BaseRoutes):
         return self.format_response(data=category_data)
 
     def post(self):
-        data = request.get_json()
-        new_category = self.service.create_new_category(name=data.get("name"))
+        data = CategoryValidator().validate_data(request.get_json())
+        new_category = self.service.create_new_category(data=data)
 
         response = self.format_response(data=new_category)
         return response, 201
@@ -28,7 +29,8 @@ class CategoryDetailsAPI(BaseRoutes):
         return self.format_response(data=category)
 
     def patch(self, category_id: int):
-        data = request.get_json()
+        data = CategoryValidator().validate_data(request.get_json())
+
         response = self.service.update_item(item_id=category_id, data=data)
         return self.format_response(data=response)
 

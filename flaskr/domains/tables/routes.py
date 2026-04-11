@@ -3,6 +3,7 @@ from flask import request
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.domains.tables.models import TableStatus
 from flaskr.domains.tables.services import TableService
+from flaskr.domains.tables.validators import TableUpdateValidator
 
 from . import bp
 
@@ -29,7 +30,7 @@ class TableDetailAPI(BaseRoutes):
         return self.format_response(data=table)
 
     def patch(self, table_id: int):
-        data = request.get_json()
+        data = TableUpdateValidator().validate_data(request.get_json())
         new_status = data.get("status")
 
         try:

@@ -24,19 +24,10 @@ class ProductService(BaseService):
         }
         return response
 
-    def create_new_product(
-        self,
-        name: str = None,
-        price: float = None,
-        stock: int = None,
-        category_id: int = None,
-    ) -> Dict | None:
+    def create_new_product(self, data: Dict[str, Any]) -> Dict | None:
         return self.create_new_item(
             model_class=Product,
-            unique_key=name,
+            unique_key=data["name"],
             column_name="name",
-            price=price,
-            stock=stock,
-            name=name,
-            category_id=category_id,
+            **data,
         )
