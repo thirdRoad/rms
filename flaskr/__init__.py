@@ -1,4 +1,5 @@
 import importlib
+import os
 from pathlib import Path
 
 from flask import Blueprint, Flask
@@ -47,6 +48,12 @@ def create_app(config_name: str = DEFAULT_CONFIG):
     config_class = config_by_name.get(config_name)
     if config_class is None:
         raise ValueError(f"Invalid configuration name: {config_name}")
+
+    if config_name == "prod":
+        if not os.environ.get("SECRET_KEY") or not os.environ.get("JWT_SECRET_KEY"):
+            raise ValueError(
+                "SECRET_KEY and JWT_SECRET_KEY environment variables must be set in production."
+            )
 
     app = Flask(__name__)
     app.config.from_object(config_class)

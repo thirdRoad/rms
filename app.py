@@ -1,3 +1,5 @@
+import os
+
 from werkzeug.security import generate_password_hash
 
 from flaskr import create_app
@@ -5,7 +7,7 @@ from flaskr.core.extensions import db
 from flaskr.domains.role.models import Role
 from flaskr.domains.user.models import User
 
-config_name = "development"
+config_name = os.environ.get("FLASK_CONFIG", "development")
 app = create_app(config_name=config_name)
 
 
@@ -19,7 +21,7 @@ def init_db_command():
     print("Successfully created tables")
 
 
-@app.cli.command("seed-db")
+@app.cli.command("seed-db-roles")
 def seed_db_command():
     existing_roles = db.session.execute(db.select(Role.name)).scalars().all()
 
@@ -43,7 +45,7 @@ def seed_db_command():
         print(e)
 
 
-@app.cli.command("seed-users")
+@app.cli.command("seed-db-users")
 def seed_user_command():
     existing_users = db.session.execute(db.select(User.username)).scalars().all()
     admin_role = db.session.execute(
