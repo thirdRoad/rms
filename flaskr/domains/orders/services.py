@@ -1,15 +1,14 @@
-from typing import Any, List
+from typing import Any, Dict, List
 
 from flask import abort
 
 from flaskr.core.base.services import BaseService
-from flaskr.core.extensions import db
 from flaskr.domains.orderDetails.models import OrderDetail
 from flaskr.domains.orderDetails.repository import OrderDetailsRepository
-from flaskr.domains.orders.models import Order
 from flaskr.domains.orders.repository import OrderRepository
 from flaskr.domains.product.repositories import ProductRepository
 from flaskr.domains.tables.repositories import TableRepository
+from flaskr.domains.user.repositories import UserRepository
 
 
 class OrderService(BaseService):
@@ -18,6 +17,7 @@ class OrderService(BaseService):
     order_detail_repo = OrderDetailsRepository()
     product_repo = ProductRepository()
     table_repo = TableRepository()
+    user_repo = UserRepository()
 
     def get_by_id(self, item_id: int) -> Any | None:
         order = self.repository.get_by_id(item_id=item_id)
@@ -35,7 +35,7 @@ class OrderService(BaseService):
         }
         return response
 
-    def get_by_Order_id_orderdetails(self, order_id: int) -> List[OrderDetail]:
+    def get_by_order_id_orderdetails(self, order_id: int) -> List[OrderDetail]:
         orders = self.order_detail_repo.get_by_order_id(order_id)
 
         if orders is None:
@@ -48,32 +48,21 @@ class OrderService(BaseService):
 
         return response
 
-    def create_new_order(self, user_id: int, table_id: int, items: list):
-        order = Order(
-            user_id=user_id,
-            table_id=table_id,
-        )
-        db.session.add(order)
-        db.session.flush()
+    def create_new_order(self, data: Dict[str, Any]):
 
-        details_to_add = []
-        for item in items:
-            product = self.product_repo.get_by_id(item["product_id"])
-            if product:
-                details_to_add.append(
-                    {
-                        "product_id": product.id,
-                        "quantity": item["quantity"],
-                        "unit_price": product.price,
-                    }
-                )
+        user = self.user_repo.get_by_id(data["user_id"])
 
-        self.order_detail_repo.add_bulk(order.id, details_to_add)
+        if user is None:
+            abort(404, description="User not found")
 
-        db.session.commit()
+        table = self.table_repo.get_by_id(data["table_id"])
 
-        return order.serialize
+        if table is None:
+            abort(404, description="Table not found")
 
+        return self.repository.add(data=data)
+
+    # update orderDetails products and quantity
     def update_order_products(
         self, order_id: int, product_id: int, quantity: int, unit_price: float
     ):
@@ -87,21 +76,17 @@ class OrderService(BaseService):
         if product is None:
             abort(404, description="Product not found")
 
-        self.order_detail_repo.upsert_item(
+        self.repository.update_order_products(
             order_id=order_id,
             product_id=product_id,
             quantity=quantity,
             unit_price=unit_price,
         )
-
-        db.session.commit()
         return product.serialize
 
+    # delete order details fonks
     def delete_order_products(self, item_id: int) -> bool:
-        try:
-            result = self.order_detail_repo.delete_all_by_order_id(item_id)
-            db.session.commit()
-            return result
-        except Exception as e:
-            db.session.rollback()
-            raise e
+        order = self.repository.get_by_id(item_id)
+        if order is None:
+            abort(404, description="Order is not found")
+        return self.repository.delete_order_products(order_id=item_id)
