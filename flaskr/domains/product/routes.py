@@ -1,6 +1,7 @@
 from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
+from flaskr.core.decorators import role_required
 from flaskr.domains.product.services import ProductService
 from flaskr.domains.product.validators import (
     ProductCreateValidator,
@@ -13,11 +14,13 @@ from . import bp
 class ProductListAPI(BaseRoutes):
     service = ProductService()
 
-    def get(self):
+    @role_required("admin", "service_staff")
+    def get(self):  # List al product
         users_data = self.service.list_items()
-        return self.format_response(data=users_data)
+        return self.format_plural_response(data=users_data)
 
-    def post(self):
+    @role_required("admin")
+    def post(self):  # Post product
         data = ProductCreateValidator().validate_data(request.get_json())
         new_product = self.service.create_new_product(data=data)
 
@@ -28,19 +31,21 @@ class ProductListAPI(BaseRoutes):
 class ProductDetailAPI(BaseRoutes):
     service = ProductService()
 
-    def get(self, product_id: int):
+    @role_required("admin", "service_staff")
+    def get(self, product_id: int):  # Get product by id
         product = self.service.get_by_id(item_id=product_id)
         return self.format_response(data=product)
 
-    def patch(self, product_id: int):
+    @role_required("admin")
+    def patch(self, product_id: int):  # Update product information
         data = ProductUpdateValidator().validate_data(request.get_json())
-
         response = self.service.update_item(item_id=product_id, data=data)
         return self.format_response(data=response)
 
-    def delete(self, product_id: int):
-        response = self.service.delete_item(item_id=product_id)
-        return self.format_response({"deletion": response})
+    @role_required("admin")
+    def delete(self, product_id: int):  # Delete product
+        self.service.delete_item(item_id=product_id)
+        return "", 204
 
 
 bp.add_url_rule(

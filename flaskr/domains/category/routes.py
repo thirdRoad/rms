@@ -1,6 +1,7 @@
 from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
+from flaskr.core.decorators import role_required
 from flaskr.domains.category import bp
 from flaskr.domains.category.services import CategoryService
 from flaskr.domains.category.validators import CategoryValidator
@@ -9,11 +10,13 @@ from flaskr.domains.category.validators import CategoryValidator
 class CategoryListAPI(BaseRoutes):
     service = CategoryService()
 
-    def get(self):
+    @role_required("admin", "service_staff")
+    def get(self):  # list all category
         category_data = self.service.list_items()
-        return self.format_response(data=category_data)
+        return self.format_plural_response(data=category_data)
 
-    def post(self):
+    @role_required("admin")
+    def post(self):  # post category
         data = CategoryValidator().validate_data(request.get_json())
         new_category = self.service.create_new_category(data=data)
 
@@ -24,19 +27,22 @@ class CategoryListAPI(BaseRoutes):
 class CategoryDetailsAPI(BaseRoutes):
     service = CategoryService()
 
-    def get(self, category_id: int):
+    @role_required("admin", "service_staff")
+    def get(self, category_id: int):  # get category by id
         category = self.service.get_by_id(category_id)
         return self.format_response(data=category)
 
-    def patch(self, category_id: int):
+    @role_required("admin")
+    def patch(self, category_id: int):  # update category
         data = CategoryValidator().validate_data(request.get_json())
 
         response = self.service.update_item(item_id=category_id, data=data)
         return self.format_response(data=response)
 
-    def delete(self, category_id: int):
-        response = self.service.delete_item(item_id=category_id)
-        return self.format_response({"deletion": response})
+    @role_required("admin")
+    def delete(self, category_id: int):  # delete category
+        self.service.delete_item(item_id=category_id)
+        return "", 204
 
 
 bp.add_url_rule(

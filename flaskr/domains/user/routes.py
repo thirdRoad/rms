@@ -16,7 +16,8 @@ class UserListAPI(BaseRoutes):
         users_data = self.service.list_items()
         return self.format_plural_response(data=users_data)
 
-    def post(self):
+    @role_required("admin")
+    def post(self):  # Post user
         data = UserCreateValidator().validate_data(request.get_json())
         new_user = self.service.create_new_user(data=data)
 
@@ -27,17 +28,19 @@ class UserListAPI(BaseRoutes):
 class UserDetailAPI(BaseRoutes):
     service = UserService()
 
-    def get(self, user_id: int):
+    @role_required("admin")
+    def get(self, user_id: int):  # Get user by id
         user = self.service.get_by_id(item_id=user_id)
         return self.format_response(data=user)
 
-    def patch(self, user_id: int):
+    @role_required("admin")
+    def patch(self, user_id: int):  # update user information
         data = UserUpdateValidator().validate_data(request.get_json())
-
         response = self.service.update_item(item_id=user_id, data=data)
         return self.format_response(data=response)
 
-    def delete(self, user_id: int):
+    @role_required("admin")
+    def delete(self, user_id: int):  # delete user
         self.service.delete_item(item_id=user_id)
         return "", 204
 

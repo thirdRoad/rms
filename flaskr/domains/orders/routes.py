@@ -1,6 +1,7 @@
 from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
+from flaskr.core.decorators import role_required
 from flaskr.domains.orders.services import OrderService
 from flaskr.domains.orders.validators import OrderCreateValidator, OrderUpdateValidator
 
@@ -10,11 +11,13 @@ from . import bp
 class OrderListAPI(BaseRoutes):
     service = OrderService()
 
-    def get(self):
+    @role_required("admin", "service_staff", "kitchen_staff")
+    def get(self):  # List all order id and created_at
         order_data = self.service.list_items()
-        return self.format_response(data=order_data)
+        return self.format_plural_response(data=order_data)
 
-    def post(self):
+    @role_required("admin", "service_staff")
+    def post(self):  # Post order with products
         data = OrderCreateValidator().validate_data(request.get_json())
         self.service.create_new_order(data=data)
         response = data
@@ -24,15 +27,17 @@ class OrderListAPI(BaseRoutes):
 class OrderItemsAPI(BaseRoutes):
     service = OrderService()
 
-    def get(self, order_id: int):
+    @role_required("admin", "service_staff", "kitchen_staff")
+    def get(self, order_id: int):  # get orderDetails
         response = self.service.get_by_order_id_orderdetails(order_id=order_id)
-        return self.format_response(data=response)
+        return self.format_plural_response(data=response)
 
 
 class OrderUpdateAPI(BaseRoutes):
     service = OrderService()
 
-    def patch(self, order_id: int, product_id: int):
+    @role_required("admin", "service_staff")
+    def patch(self, order_id: int, product_id: int):  # Update order products
         data = OrderUpdateValidator().validate_data(request.get_json())
         quantity = data["quantity"]
         response = self.service.update_order_products(
@@ -45,13 +50,15 @@ class OrderUpdateAPI(BaseRoutes):
 class OrderDetailAPI(BaseRoutes):
     service = OrderService()
 
-    def get(self, order_id: int):
+    @role_required("admin", "service_staff", "kitchen_staff")
+    def get(self, order_id: int):  # get order and user by id
         user = self.service.get_by_id(item_id=order_id)
         return self.format_response(data=user)
 
-    def delete(self, order_id: int):
-        response = self.service.delete_order_products(item_id=order_id)
-        return self.format_response(data={"deletion": response})
+    @role_required("admin", "service_staff")
+    def delete(self, order_id: int):  # Delete order products
+        self.service.delete_order_products(item_id=order_id)
+        return "", 204
 
 
 bp.add_url_rule(
