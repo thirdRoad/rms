@@ -1,6 +1,8 @@
 from flask import request
+from flask_jwt_extended import jwt_required
 
 from flaskr.core.base.routes import BaseRoutes
+from flaskr.core.decorators import role_required
 from flaskr.domains.user.services import UserService
 from flaskr.domains.user.validators import UserCreateValidator, UserUpdateValidator
 
@@ -10,6 +12,8 @@ from . import bp
 class UserListAPI(BaseRoutes):
     service = UserService()
 
+    @role_required("admin")
+    @jwt_required()
     def get(self):  # Return all users
         users_data = self.service.list_items()
         return self.format_response(data=users_data)

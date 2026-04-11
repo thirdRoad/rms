@@ -5,7 +5,7 @@ from flask import Blueprint, Flask
 
 from flaskr.core.config import config_by_name
 from flaskr.core.error_handler import ErrorHandler
-from flaskr.core.extensions import db, migrate
+from flaskr.core.extensions import db, jwt, migrate
 
 DEFAULT_CONFIG = "development"
 
@@ -59,5 +59,6 @@ def create_app(config_name: str = DEFAULT_CONFIG):
         load_all_models()
 
     register_blueprints(app)
+    jwt.init_app(app)
 
     return app

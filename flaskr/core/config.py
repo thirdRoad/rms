@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 # https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY
 
@@ -27,6 +28,9 @@ class Config:
 
     CACHE_TYPE: str = os.environ.get("CACHE_TYPE") or "simple"  # Flask-Cache
     CACHE_REDIS_URL: str = os.environ.get("REDIS_URL") or None  # Flask-Cache
+
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=10)
 
 
 class DevelopmentConfig(Config):
