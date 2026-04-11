@@ -1,11 +1,11 @@
 from marshmallow import fields, validate
 
 from flaskr.core.base.validators import BaseValidator
-
-
-class TableCreateValidator(BaseValidator):
-    name = fields.Str(validate=[validate.Length(min=3, max=30)])
+from flaskr.domains.tables.models import TableStatus
 
 
 class TableUpdateValidator(BaseValidator):
-    name = fields.Str(validate=[validate.Length(min=3, max=30)])
+    status = fields.Str(
+        required=True,
+        validate=validate.OneOf([s.value for s in TableStatus]),
+    )

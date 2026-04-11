@@ -35,12 +35,8 @@ class OrderUpdateAPI(BaseRoutes):
     def patch(self, order_id: int, product_id: int):
         data = OrderUpdateValidator().validate_data(request.get_json())
         quantity = data["quantity"]
-        unit_price = data["unit_price"]
         response = self.service.update_order_products(
-            order_id=order_id,
-            product_id=product_id,
-            quantity=quantity,
-            unit_price=unit_price,
+            order_id=order_id, product_id=product_id, quantity=quantity
         )
 
         return self.format_response(data=response)

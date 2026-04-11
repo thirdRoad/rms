@@ -22,5 +22,4 @@ class OrderCreateValidator(BaseValidator):
 
 
 class OrderUpdateValidator(BaseValidator):
-    quantity = fields.Int(validate=validate.Range(min=1))
-    unit_price = fields.Int(validate=validate.Range(min=1))
+    quantity = fields.Int(required=True, validate=validate.Range(min=1))

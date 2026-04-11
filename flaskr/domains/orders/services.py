@@ -63,9 +63,7 @@ class OrderService(BaseService):
         return self.repository.add(data=data)
 
     # update orderDetails products and quantity
-    def update_order_products(
-        self, order_id: int, product_id: int, quantity: int, unit_price: float
-    ):
+    def update_order_products(self, order_id: int, product_id: int, quantity: int):
         order = self.repository.get_by_id(order_id)
 
         if order is None:
@@ -77,10 +75,7 @@ class OrderService(BaseService):
             abort(404, description="Product not found")
 
         self.repository.update_order_products(
-            order_id=order_id,
-            product_id=product_id,
-            quantity=quantity,
-            unit_price=unit_price,
+            order_id=order_id, product_id=product_id, quantity=quantity
         )
         return product.serialize
 
