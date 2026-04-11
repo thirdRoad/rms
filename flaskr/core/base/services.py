@@ -24,17 +24,19 @@ class BaseService(Generic[T]):
     def create_new_item(
         self,
         model_class,
-        stun_name: str,
+        column_name: str,
         unique_key: str,
         func_name: str = "get_by_name",
         **kwargs,
     ) -> Dict | None:
 
-        if existing_item := getattr(self.repository, func_name)(stun_name, unique_key):
+        if existing_item := getattr(self.repository, func_name)(
+            column_name, unique_key
+        ):
             abort(
                 code=409,
                 description=f"this item already current."
-                f" detail: {existing_item.serialize}",
+                f" detail: id -> {existing_item.serialize.get("id")}",
             )
 
         new_item = self.repository.add(model_class(**kwargs))

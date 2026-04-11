@@ -16,7 +16,7 @@ class User(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(32), unique=True)
-    password: Mapped[str] = mapped_column(String(128))
+    password: Mapped[str] = mapped_column(String(512))
     display_name: Mapped[str] = mapped_column(String(16), unique=True)
     email: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -33,7 +33,6 @@ class User(BaseModel):
         return {
             "id": self.id,
             "username": self.username,
-            "password": self.password,
             "display_name": self.display_name,
             "email": self.email,
             "created_at": self.created_at.isoformat(),

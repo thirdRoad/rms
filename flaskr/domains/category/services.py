@@ -12,6 +12,6 @@ class CategoryService(BaseService):
         return self.create_new_item(
             model_class=Category,
             unique_key=name,
-            stun_name="name",
+            column_name="name",
             name=name,
         )

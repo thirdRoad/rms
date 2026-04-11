@@ -34,7 +34,7 @@ class ProductService(BaseService):
         return self.create_new_item(
             model_class=Product,
             unique_key=name,
-            stun_name="name",
+            column_name="name",
             price=price,
             stock=stock,
             name=name,

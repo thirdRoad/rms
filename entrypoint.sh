@@ -15,4 +15,7 @@ flask db upgrade
 echo "Crate a base roles"
 flask seed-db
 
+echo "Crate a base users"
+flask seed-users
+
 exec "$@"
