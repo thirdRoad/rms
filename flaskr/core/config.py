@@ -30,7 +30,7 @@ class Config:
     CACHE_REDIS_URL: str = os.environ.get("REDIS_URL") or None  # Flask-Cache
 
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "dev-secret")
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=10)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 
 
 class DevelopmentConfig(Config):

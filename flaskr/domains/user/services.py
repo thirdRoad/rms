@@ -12,7 +12,7 @@ class UserService(BaseService):
     repository: UserRepository
     repository = UserRepository()
 
-    def get_by_id(self, item_id: int) -> Any | None:
+    def get_by_id(self, item_id: int) -> Dict[str, Any]:
         user = self.repository.get_by_id(item_id=item_id)
 
         if user is None:

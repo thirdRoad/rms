@@ -1,5 +1,4 @@
 from flask import request
-from flask_jwt_extended import jwt_required
 
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.core.decorators import role_required
@@ -13,10 +12,9 @@ class UserListAPI(BaseRoutes):
     service = UserService()
 
     @role_required("admin")
-    @jwt_required()
     def get(self):  # Return all users
         users_data = self.service.list_items()
-        return self.format_response(data=users_data)
+        return self.format_plural_response(data=users_data)
 
     def post(self):
         data = UserCreateValidator().validate_data(request.get_json())
@@ -40,8 +38,8 @@ class UserDetailAPI(BaseRoutes):
         return self.format_response(data=response)
 
     def delete(self, user_id: int):
-        response = self.service.delete_item(item_id=user_id)
-        return self.format_response({"deletion": response})
+        self.service.delete_item(item_id=user_id)
+        return "", 204
 
 
 bp.add_url_rule(

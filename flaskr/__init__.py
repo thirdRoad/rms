@@ -2,6 +2,7 @@ import importlib
 from pathlib import Path
 
 from flask import Blueprint, Flask
+from sqlalchemy import select
 
 from flaskr.core.config import config_by_name
 from flaskr.core.error_handler import ErrorHandler
@@ -60,5 +61,15 @@ def create_app(config_name: str = DEFAULT_CONFIG):
 
     register_blueprints(app)
     jwt.init_app(app)
+
+    from flaskr.domains.auth.models import TokenBlocklist
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        jti = jwt_payload["jti"]
+        token = db.session.execute(
+            select(TokenBlocklist).filter_by(jti=jti)
+        ).scalar_one_or_none()
+        return token is not None
 
     return app

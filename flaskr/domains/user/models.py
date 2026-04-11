@@ -33,7 +33,6 @@ class User(BaseModel):
         return {
             "id": self.id,
             "username": self.username,
-            "password": self.password,
             "display_name": self.display_name,
             "email": self.email,
             "created_at": self.created_at.isoformat(),
