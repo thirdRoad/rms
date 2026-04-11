@@ -38,4 +38,11 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_ECHO = True
 
 
-config_by_name = {"development": DevelopmentConfig}
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_ECHO = False
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
+
+
+config_by_name = {"development": DevelopmentConfig, "testing": TestingConfig}
