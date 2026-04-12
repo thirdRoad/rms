@@ -1,11 +1,13 @@
 import importlib
+import os
 from pathlib import Path
 
 from flask import Blueprint, Flask
+from sqlalchemy import select
 
 from flaskr.core.config import config_by_name
 from flaskr.core.error_handler import ErrorHandler
-from flaskr.core.extensions import db, migrate
+from flaskr.core.extensions import db, jwt, migrate
 
 DEFAULT_CONFIG = "development"
 
@@ -47,6 +49,12 @@ def create_app(config_name: str = DEFAULT_CONFIG):
     if config_class is None:
         raise ValueError(f"Invalid configuration name: {config_name}")
 
+    if config_name == "prod":
+        if not os.environ.get("SECRET_KEY") or not os.environ.get("JWT_SECRET_KEY"):
+            raise ValueError(
+                "SECRET_KEY and JWT_SECRET_KEY environment variables must be set in production."
+            )
+
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -59,5 +67,16 @@ def create_app(config_name: str = DEFAULT_CONFIG):
         load_all_models()
 
     register_blueprints(app)
+    jwt.init_app(app)
+
+    from flaskr.domains.auth.models import TokenBlocklist
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        jti = jwt_payload["jti"]
+        token = db.session.execute(
+            select(TokenBlocklist).filter_by(jti=jti)
+        ).scalar_one_or_none()
+        return token is not None
 
     return app

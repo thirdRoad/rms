@@ -1,8 +1,10 @@
 from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
+from flaskr.core.decorators import role_required
 from flaskr.domains.tables.models import TableStatus
 from flaskr.domains.tables.services import TableService
+from flaskr.domains.tables.validators import TableUpdateValidator
 
 from . import bp
 
@@ -10,11 +12,13 @@ from . import bp
 class TableListAPI(BaseRoutes):
     service = TableService()
 
-    def get(self):
+    @role_required("admin", "service_staff", "kitchen_staff")
+    def get(self):  # List all tables
         users_data = self.service.list_items()
-        return self.format_response(data=users_data)
+        return self.format_plural_response(data=users_data)
 
-    def post(self):
+    @role_required("admin")
+    def post(self):  # Added table
         new_table = self.service.create_new_table()
 
         response = self.format_response(data=new_table.serialize)
@@ -24,12 +28,14 @@ class TableListAPI(BaseRoutes):
 class TableDetailAPI(BaseRoutes):
     service = TableService()
 
-    def get(self, table_id: int):
+    @role_required("admin", "service_staff", "kitchen_staff")
+    def get(self, table_id: int):  # Get table by id
         table = self.service.get_by_id(item_id=table_id)
         return self.format_response(data=table)
 
-    def patch(self, table_id: int):
-        data = request.get_json()
+    @role_required("admin", "service_staff")
+    def patch(self, table_id: int):  # Update table information
+        data = TableUpdateValidator().validate_data(request.get_json())
         new_status = data.get("status")
 
         try:
@@ -40,9 +46,10 @@ class TableDetailAPI(BaseRoutes):
         response = self.service.update_item(item_id=table_id, data=status_enum)
         return self.format_response(data=response)
 
-    def delete(self, table_id: int):
-        response = self.service.delete_item(item_id=table_id)
-        return self.format_response({"deletion": response})
+    @role_required("admin")
+    def delete(self, table_id: int):  # Delete table
+        self.service.delete_item(item_id=table_id)
+        return "", 204
 
 
 bp.add_url_rule(

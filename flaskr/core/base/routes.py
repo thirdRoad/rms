@@ -10,8 +10,20 @@ class BaseRoutes(MethodView):
     def format_response(data: Any, pagination: bool = False) -> Response:
         response = {
             "server_time": datetime.now(timezone.utc).isoformat(),
-            "count": len(data) if isinstance(data, list) else 1,
-            "items": data if isinstance(data, list) else [data],
+            "data": data,
+        }
+
+        if pagination:
+            pass
+
+        return jsonify(response)
+
+    @staticmethod
+    def format_plural_response(data: Any, pagination: bool = False) -> Response:
+        response = {
+            "server_time": datetime.now(timezone.utc).isoformat(),
+            "count": len(data),
+            "data": data,
         }
 
         if pagination:
