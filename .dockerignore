@@ -2,6 +2,7 @@
 .venv/
 env/
 __pycache__/
+__pypackages__
 *.pyc
 
 # git
@@ -10,6 +11,9 @@ __pycache__/
 
 # docker
 Dockerfile
+docker-compose.yml
+prod-compose.yml
+dev-compose.yml
 .dockerignore
 
 # editor
@@ -20,3 +24,16 @@ Dockerfile
 
 # docs
 docs/
+README.md
+*.md
+
+# env files (sensitive)
+.env
+.env.*
+!.env.template
+
+# tests
+.pytest_cache/
+
+# ci/cd
+.pre-commit-config.yaml

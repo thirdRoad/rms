@@ -1,21 +1,31 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS base
 
 WORKDIR /app
+ENV POETRY_VIRTUALENVS_CREATE=false
 
-RUN apt-get update && apt-get install -y \
-    curl \
-    netcat-traditional \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt upgrade -y && apt autoclean
+RUN apt install vim -y
 RUN pip install --no-cache-dir poetry
 
 COPY pyproject.toml poetry.lock ./
-ENV POETRY_VIRTUALENVS_CREATE=false
+
+COPY flaskr /app/flaskr
+COPY app.py app.py
+
+FROM base AS dev
+
 RUN poetry install --no-root
 
-COPY flaskr /app
+COPY tests /app/tests
 
-COPY entrypoint.sh /entrypoint.sh
+COPY sh/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
+FROM base AS prod
+
+RUN poetry install --no-root --only main
+
+COPY sh/prod-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

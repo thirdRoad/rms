@@ -1,9 +1,12 @@
 from flaskr.core.extensions import db
 from flaskr.domains.role.models import Role
+from flaskr.domains.user.services import UserService
 from tests.base import BaseTestCase
 
 
 class TestUserListAPI(BaseTestCase):
+    domain_class = UserService
+    domain: UserService
 
     def setup_case(self):
         role = Role(name="admin")
@@ -24,6 +27,6 @@ class TestUserListAPI(BaseTestCase):
         )
 
         assert res.status_code == 201
-        assert res.json()["response"]["username"] == "denizbaba"
-        assert res.json()["response"]["email"] == "baba@gmail.com"
-        assert "password" not in res.json()["response"]
+        assert res.json["response"]["username"] == "denizbaba"
+        assert res.json["response"]["email"] == "baba@gmail.com"
+        assert "password" not in res.json["response"]
