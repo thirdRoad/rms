@@ -2,7 +2,6 @@ from flask import request
 
 from flaskr.core.base.routes import BaseRoutes
 from flaskr.core.decorators import role_required
-from flaskr.domains.tables.models import TableStatus
 from flaskr.domains.tables.services import TableService
 from flaskr.domains.tables.validators import TableUpdateValidator
 
@@ -35,15 +34,9 @@ class TableDetailAPI(BaseRoutes):
 
     @role_required("admin", "service_staff")
     def patch(self, table_id: int):  # Update table information
-        data = TableUpdateValidator().validate_data(request.get_json())
-        new_status = data.get("status")
+        data = TableUpdateValidator().get_table_status(request.get_json())
+        response = self.service.update_item(item_id=table_id, data=data)
 
-        try:
-            status_enum = TableStatus[new_status.upper()]
-        except (KeyError, AttributeError) as e:
-            print(e)
-
-        response = self.service.update_item(item_id=table_id, data=status_enum)
         return self.format_response(data=response)
 
     @role_required("admin")

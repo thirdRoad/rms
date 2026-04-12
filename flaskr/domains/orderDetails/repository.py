@@ -48,7 +48,9 @@ class OrderDetailsRepository(BaseRepository[OrderDetail]):
         db.session.execute(stmt)
         return True
 
-    def upsert_item(self, order_id: int, product_id: int, quantity: int):
+    def upsert_item(
+        self, order_id: int, product_id: int, quantity: int, unit_price: float
+    ):
         item = db.session.get(self.model, (order_id, product_id))
 
         if item:
@@ -58,6 +60,7 @@ class OrderDetailsRepository(BaseRepository[OrderDetail]):
                 order_id=order_id,
                 product_id=product_id,
                 quantity=quantity,
+                unit_price=unit_price,
             )
             db.session.add(new_item)
 

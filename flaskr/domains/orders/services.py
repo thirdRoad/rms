@@ -30,7 +30,7 @@ class OrderService(BaseService):
             "id": order.user.id,
             "username": order.user.username,
             "email": order.user.email,
-            "created_at": order.created_at,
+            "created_at": order.user.created_at,
             "display_name": order.user.display_name,
         }
         return response
@@ -38,7 +38,7 @@ class OrderService(BaseService):
     def get_by_order_id_orderdetails(self, order_id: int) -> List[OrderDetail]:
         orders = self.order_detail_repo.get_by_order_id(order_id)
 
-        if orders is None:
+        if not orders:
             abort(404, description="Order not found")
 
         response = []
@@ -65,19 +65,17 @@ class OrderService(BaseService):
     # update orderDetails products and quantity
     def update_order_products(self, order_id: int, product_id: int, quantity: int):
         order = self.repository.get_by_id(order_id)
-
         if order is None:
             abort(404, description="Order not found")
 
         product = self.product_repo.get_by_id(product_id)
-
         if product is None:
             abort(404, description="Product not found")
 
         self.repository.update_order_products(
             order_id=order_id, product_id=product_id, quantity=quantity
         )
-        return product.serialize
+        return self.get_by_id(item_id=order_id)
 
     # delete order details fonks
     def delete_order_products(self, item_id: int) -> bool:

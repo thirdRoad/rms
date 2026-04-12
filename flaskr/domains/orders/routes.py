@@ -19,9 +19,8 @@ class OrderListAPI(BaseRoutes):
     @role_required("admin", "service_staff")
     def post(self):  # Post order with products
         data = OrderCreateValidator().validate_data(request.get_json())
-        self.service.create_new_order(data=data)
-        response = data
-        return response, 201
+        response = self.service.create_new_order(data=data)
+        return self.format_response(data=response), 201
 
 
 class OrderItemsAPI(BaseRoutes):
@@ -52,8 +51,8 @@ class OrderDetailAPI(BaseRoutes):
 
     @role_required("admin", "service_staff", "kitchen_staff")
     def get(self, order_id: int):  # get order and user by id
-        user = self.service.get_by_id(item_id=order_id)
-        return self.format_response(data=user)
+        order = self.service.get_by_id(item_id=order_id)
+        return self.format_response(data=order)
 
     @role_required("admin", "service_staff")
     def delete(self, order_id: int):  # Delete order products

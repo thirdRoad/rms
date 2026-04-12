@@ -56,9 +56,11 @@ class OrderRepository(BaseRepository[Order]):
         # update orderDetails products and quantity
 
     def update_order_products(self, order_id: int, product_id: int, quantity: int):
+        product = self.product_repo.get_by_id(product_id)
         self.order_detail_repo.upsert_item(
             order_id=order_id,
             product_id=product_id,
             quantity=quantity,
+            unit_price=product.price,
         )
         db.session.commit()
