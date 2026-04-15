@@ -5,33 +5,42 @@
 4. [x] ORM/Migration: SQLAlchemy / Flask-Migrate
 5. [x] Architecture: Application Factory & Modular Blueprints (Domains)
 
+# Requirements
+- **Python 3.12+**
+- **Poetry**
+- **Docker**
+
 # Usage
-
-### Requirements
-1. Python 3.12+
-2. Poetry
-
-## Database Migrations (Schema Changes)
-When you make changes to your SQLAlchemy models, use the following commands; \
-- If you haven't migrations file -> `flask db init`
-- Create Migration File ->
-`flask db migrate -m "Added new models"`\
-- Apply Migrations -> `flask db upgrade`
 
 ## With Docker
 
 ### Build a image
-`docker compose build`
+- First you create a .env file.
+- We have a template for .env file. `/restaurant-management-system-flask/.env.template`
+
+```bash
+cp .env.template .env
+```
+
+- Then create an image.
+
+```bash
+docker compose -f dev-compose.yml build
+```
 
 ### Up the image
-`docker compose up`
+- Detach Mode ( release the terminal )
+```bash
+docker compose -f dev-compose.yml up -d
+```
 
-## Without docker
+## CLI
+Python File -> `/restaurant-management-system-flask/app.py`
 
-### Create Tables
-This command initializes the database schema based on your current SQLAlchemy models.\
-`flask init-db`
+### Commands
+- `init-db` - Creates tables without being tied to anything.
+- `seed-db-roles` - Creates a base roles.
+- `seed-db-users` - Create an Admin user.
 
-### Run the App
-Start the development server using the Flask CLI. The application will be accessible at \
-`flask run`
+### Flask Commands
+Doc Link - https://flask.palletsprojects.com/en/stable/cli/
