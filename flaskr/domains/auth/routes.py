@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+from typing import Any, Dict
+
 from flask import Response, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -14,17 +17,24 @@ class BaseAuthAPI(BaseRoutes):
     service: AuthService = AuthService()
 
     @staticmethod
-    def format_response(data: dict, pagination: bool = False) -> Response:
-        return jsonify(
-            {
-                "access_token": data["access_token"],
-                "refresh_token": data["refresh_token"],
-            }
-        )
+    def format_token_response(data: Dict[str, Any]) -> Response:
+        final_data = {
+            "access_token": data["access_token"],
+            "refresh_token": data["refresh_token"],
+        }
+        response = {
+            "server_time": datetime.now(timezone.utc).isoformat(),
+            "data": final_data,
+        }
+        return jsonify(response)
 
     @staticmethod
-    def format_base_response(data: dict) -> Response:
-        return jsonify(data)
+    def format_logout_response(data: Dict[str, Any]) -> Response:
+        response = {
+            "server_time": datetime.now(timezone.utc).isoformat(),
+            "data": data,
+        }
+        return jsonify(response)
 
 
 class AuthLoginAPI(BaseAuthAPI):
@@ -35,7 +45,7 @@ class AuthLoginAPI(BaseAuthAPI):
         tokens = self.service.verify_user(
             username=data["username"], password=data["password"]
         )
-        return self.format_response(data=tokens)
+        return self.format_token_response(data=tokens)
 
 
 class AuthLogoutAPI(BaseAuthAPI):
@@ -44,7 +54,7 @@ class AuthLogoutAPI(BaseAuthAPI):
     @jwt_required()
     def post(self):  # Blacklist tokens and logout
         self.service.logout()
-        return self.format_base_response(data={"msg": "Successfully logged out"})
+        return self.format_logout_response(data={"msg": "Successfully logged out"})
 
 
 class AuthMeAPI(BaseAuthAPI):
@@ -55,7 +65,7 @@ class AuthMeAPI(BaseAuthAPI):
     def get(self):  # Get current user profile data by JWT identity
         user_id = int(get_jwt_identity())
         user_data = self.service.get_by_id(item_id=user_id)
-        return self.format_base_response(data=user_data)
+        return self.format_response(data=user_data)
 
 
 bp.add_url_rule(

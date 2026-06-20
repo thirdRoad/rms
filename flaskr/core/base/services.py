@@ -35,7 +35,7 @@ class BaseService(Generic[T]):
         ):
             abort(
                 code=409,
-                description=f"this item already current."
+                description=f"already exists"
                 f" detail: id -> {existing_item.serialize.get("id")}",
             )
 

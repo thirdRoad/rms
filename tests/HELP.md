@@ -28,31 +28,16 @@ class TestUserListAPI(BaseTestCase):
         self.role_id = role.id
 ```
 
-## Writing Route Tests
-
-Use `self.client` to make HTTP requests.
-
-```python
-def test_create_user_returns_201(self):
-    res = self.client.post("/users/", json={...})
-    assert res.status_code == 201
-    assert res.json()["response"]["username"] == "denizbaba"
-```
-
-## Writing Service Tests
-
-Use `self.app.test_request_context()` when the service calls `abort()`.
-
-```python
-def test_get_by_id_not_found(self):
-    with self.app.test_request_context():
-        with pytest.raises(NotFound) as exc_info:
-            self.domain.get_by_id(999)
-        assert exc_info.value.code == 404
-```
-
 ## Running Tests
 
+### With Docker
+
+- First, get inside the container.
 ```bash
-pytest tests/ -v
+docker exec -it rms.flask.dev bash
+```
+
+- After than, run the unit-test
+```bash
+pytest tests/domains/<domain>/test_routes
 ```
