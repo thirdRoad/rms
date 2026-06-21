@@ -1,0 +1,27 @@
+name: Branch Naming Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify branch naming convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+
+          if [[ "$BRANCH" == "develop" ]]; then
+            echo "OK: develop"
+            exit 0
+          fi
+
+          if [[ "$BRANCH" =~ ^[a-z]+/THI-[0-9]+(-[a-z0-9-]+)?$ ]]; then
+            echo "OK: $BRANCH"
+            exit 0
+          fi
+
+          echo "::error::Branch ismi kurala uymuyor: '$BRANCH'"
+          echo "::error::Beklenen format: develop veya isim/THI-XX (orn. kaan/THI-31), THI buyuk harf olmali"
+          exit 1
