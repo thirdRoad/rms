@@ -8,8 +8,11 @@
 ```
 tests/
 ├── base.py
+├── __init__.py
 └── domains/
+    ├── __init__.py
     └── <domain>/
+        ├── __init__.py
         ├── test_routes.py
         └── test_services.py
 ```
