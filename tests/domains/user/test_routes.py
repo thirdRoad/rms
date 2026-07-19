@@ -32,7 +32,7 @@ class TestUserListAPI(BaseTestCase):
             "/auth/login",
             json={"username": "testadmin", "password": "adminpass"},
         )
-        token = res.json["access_token"]
+        token = res.json["data"]["access_token"]
         return {"Authorization": f"Bearer {token}"}
 
     def test_create_user_returns_201(self):
