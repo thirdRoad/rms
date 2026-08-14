@@ -2,26 +2,72 @@ name: Branch Naming Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   check-branch-name:
     runs-on: ubuntu-latest
     steps:
       - name: Verify branch naming convention
+        env:
+          HEAD: ${{ github.head_ref }}
         run: |
-          BRANCH="${{ github.head_ref }}"
+          fail() {
+            echo "::error title=Branch naming violation::$1"
+            {
+              echo "### ❌ Branch naming violation"
+              echo ""
+              echo "Branch \`$HEAD\` does not match the required naming convention."
+              echo ""
+              echo "$1"
+              echo ""
+              echo "**Expected format**"
+              echo ""
+              echo '```'
+              echo "develop"
+              echo "<name>/THI-<number>"
+              echo "<name>/THI-<number>-<short-description>"
+              echo '```'
+              echo ""
+              echo "**Valid examples:** \`kaan/THI-31\`, \`efe/THI-36-product-tests\`"
+              echo ""
+              echo "**Rules:** the name segment is lowercase letters only, \`THI\` is uppercase, the issue number is digits, and the optional description uses lowercase letters, digits and hyphens."
+              echo ""
+              echo "**How to fix:** rename the branch and repoint this PR."
+              echo ""
+              echo '```bash'
+              echo "git branch -m <correct-name>"
+              echo "git push origin -u <correct-name>"
+              echo "git push origin --delete $HEAD"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
 
-          if [[ "$BRANCH" == "develop" ]]; then
-            echo "OK: develop"
+          pass() {
+            echo "✅ $HEAD"
+            {
+              echo "### ✅ Branch naming check passed"
+              echo ""
+              echo "Branch \`$HEAD\` matches the naming convention."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
+          }
+
+          if [ "$HEAD" = "develop" ]; then
+            pass
           fi
 
-          if [[ "$BRANCH" =~ ^[a-z]+/THI-[0-9]+(-[a-z0-9-]+)?$ ]]; then
-            echo "OK: $BRANCH"
-            exit 0
+          if [[ "$HEAD" =~ ^[a-z]+/THI-[0-9]+(-[a-z0-9-]+)?$ ]]; then
+            pass
           fi
 
-          echo "::error::Branch ismi kurala uymuyor: '$BRANCH'"
-          echo "::error::Beklenen format: develop veya isim/THI-XX (orn. kaan/THI-31), THI buyuk harf olmali"
-          exit 1
+          if [[ "$HEAD" =~ ^[a-z]+/[Tt][Hh][Ii]-[0-9]+(-[a-z0-9-]+)?$ ]]; then
+            fail "The project prefix must be uppercase 'THI'."
+          fi
+
+          if [[ "$HEAD" != */* ]]; then
+            fail "The branch name is missing the '<name>/' prefix."
+          fi
+
+          fail "The branch name does not match the expected pattern."
