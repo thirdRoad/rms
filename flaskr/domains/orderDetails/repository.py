@@ -49,20 +49,20 @@ class OrderDetailsRepository(BaseRepository[OrderDetail]):
         return True
 
     def upsert_item(
-            self, order_id: int, product_id: int, quantity: int, unit_price: float
-        ):
-            item = db.session.get(self.model, (order_id, product_id))
+        self, order_id: int, product_id: int, quantity: int, unit_price: float
+    ):
+        item = db.session.get(self.model, (order_id, product_id))
 
-            if item:
-                item.quantity = quantity
-            else:
-                item = OrderDetail(
-                    order_id=order_id,
-                    product_id=product_id,
-                    quantity=quantity,
-                    unit_price=unit_price,
-                )
-                db.session.add(item)
+        if item:
+            item.quantity = quantity
+        else:
+            item = OrderDetail(
+                order_id=order_id,
+                product_id=product_id,
+                quantity=quantity,
+                unit_price=unit_price,
+            )
+            db.session.add(item)
 
-            db.session.flush()
-            return item
+        db.session.flush()
+        return item
