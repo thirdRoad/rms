@@ -43,7 +43,7 @@ class OrderUpdateAPI(BaseRoutes):
             order_id=order_id, product_id=product_id, quantity=quantity
         )
 
-        return self.format_response(data=response)
+        return self.format_plural_response(data=response)
 
 
 class OrderDetailAPI(BaseRoutes):
