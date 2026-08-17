@@ -1,0 +1,218 @@
+import pytest
+from werkzeug.exceptions import NotFound
+
+from flaskr.domains.category.models import Category
+from flaskr.domains.orderDetails.models import OrderDetail
+from flaskr.domains.orders.models import Order
+from flaskr.domains.orders.services import OrderService
+from flaskr.domains.product.models import Product
+from flaskr.domains.role.models import Role
+from flaskr.domains.tables.models import Table
+from flaskr.domains.user.models import User
+from tests.base import BaseTestCase
+
+
+class TestOrdersService(BaseTestCase):
+    domain_class = OrderService
+    domain: OrderService
+
+    def seed_category(self, name: str = "Pizza") -> int:
+        category = Category(name=name)
+        self.db.session.add(category)
+        self.db.session.commit()
+        return category.id
+
+    def seed_product(
+        self,
+        c_name: str = "Pizza",
+        p_name: str = "Superix Pizza",
+        price: float = 10.0,
+        stock: int = 5,
+    ) -> int:
+        category_id = self.seed_category(name=c_name)
+        product = Product(
+            name=p_name,
+            price=price,
+            stock=stock,
+            category_id=category_id,
+        )
+        self.db.session.add(product)
+        self.db.session.commit()
+        return product.id
+
+    def seed_user(
+        self,
+        username: str = "Efe",
+        password: str = "efe123",
+        display_name: str = "efe12",
+        email: str = "efe@gmail.com",
+    ) -> int:
+        admin_role = Role(name="admin")
+        self.db.session.add(admin_role)
+        self.db.session.commit()
+        user = User(
+            username=username,
+            password=password,
+            display_name=display_name,
+            email=email,
+            role_id=admin_role.id,
+        )
+        self.db.session.add(user)
+        self.db.session.commit()
+        return user.id
+
+    def seed_order(self):
+        user = self.seed_user()
+        table = Table()
+        self.db.session.add(table)
+        self.db.session.commit()
+        product1 = self.seed_product()
+        product2 = self.seed_product(
+            c_name="Burger", p_name="Chicken Burger", price=10.0, stock=5
+        )
+        order = Order(user_id=user, table_id=table.id)
+        self.db.session.add(order)
+        self.db.session.commit()
+        order_details1 = OrderDetail(
+            order_id=order.id, product_id=product1, quantity=1, unit_price=200
+        )
+        order_details2 = OrderDetail(
+            order_id=order.id, product_id=product2, quantity=20, unit_price=100
+        )
+        self.db.session.add_all([order_details1, order_details2])
+        self.db.session.commit()
+        return order.id
+
+    def test_get_by_id_returns_item(self):
+        order_id = self.seed_order()
+
+        with self.app.test_request_context():
+            result = self.domain.get_by_id(order_id)
+
+            assert result["id"] == order_id
+            assert result["user"]["id"] == 1
+            assert result["user"]["username"] == "Efe"
+            assert result["user"]["display_name"] == "efe12"
+            assert result["user"]["email"] == "efe@gmail.com"
+
+    def test_get_by_id_not_fount_returns_404(self):
+        with self.app.test_request_context():
+            with pytest.raises(NotFound) as exc_info:
+                self.domain.get_by_id(999)
+
+            assert exc_info.value.code == 404
+
+    def test_get_by_order_id_returns_all_serialized(self):
+        order_id = self.seed_order()
+
+        with self.app.test_request_context():
+            result = self.domain.get_by_order_id_orderdetails(order_id=order_id)
+            assert len(result) == 2
+            assert {item["order_id"] for item in result} == {1}
+            assert {item["product_id"] for item in result} == {1, 2}
+            assert {item["quantity"] for item in result} == {1, 20}
+            assert {item["unit_price"] for item in result} == {200, 100}
+
+    def test_get_by_order_id_not_found_returns_404(self):
+        with self.app.test_request_context():
+            with pytest.raises(NotFound) as exc_info:
+                self.domain.get_by_order_id_orderdetails(999)
+
+            assert exc_info.value.code == 404
+
+    def test_delete_order_products_returns_true_and_removes(self):
+        order_id = self.seed_order()
+
+        with self.app.test_request_context():
+            assert self.domain.delete_order_products(item_id=order_id) is True
+
+            with pytest.raises(NotFound):
+                self.domain.get_by_order_id_orderdetails(order_id)
+
+    def test_delete_order_products_nonexistent_item_raises_404(self):
+        with self.app.test_request_context():
+            with pytest.raises(NotFound):
+                self.domain.delete_order_products(item_id=999)
+
+    def test_create_new_order_return_serialize_data(self):
+        product = self.seed_product()
+        user = self.seed_user()
+        table = Table()
+        self.db.session.add(table)
+        self.db.session.commit()
+        data = {
+            "user_id": user,
+            "table_id": table.id,
+            "items": [{"product_id": product, "quantity": 3}],
+        }
+        with self.app.test_request_context():
+            result = self.domain.create_new_order(data)
+
+            assert result["id"] == 1
+
+    def test_create_new_order_user_is_none_return_nonexistent_item_raises_404(self):
+        product = self.seed_product()
+        table = Table()
+        self.db.session.add(table)
+        self.db.session.commit()
+        data = {
+            "user_id": None,
+            "table_id": table.id,
+            "items": [{"product_id": product, "quantity": 3}],
+        }
+        with self.app.test_request_context():
+            with pytest.raises(NotFound):
+                self.domain.create_new_order(data)
+
+    def test_create_new_order_table_is_none_return_nonexistent_item_raises_404(self):
+        product = self.seed_product()
+        user = self.seed_user()
+        table = Table()
+        self.db.session.add(table)
+        self.db.session.commit()
+        data = {
+            "user_id": user,
+            "table_id": None,
+            "items": [{"product_id": product, "quantity": 3}],
+        }
+        with self.app.test_request_context():
+            with pytest.raises(NotFound):
+                self.domain.create_new_order(data)
+
+    def test_create_new_order_persists_to_db(self):
+        product = self.seed_product()
+        user = self.seed_user()
+        table = Table()
+        self.db.session.add(table)
+        self.db.session.commit()
+        data = {
+            "user_id": user,
+            "table_id": table.id,
+            "items": [{"product_id": product, "quantity": 3}],
+        }
+        with self.app.test_request_context():
+            self.domain.create_new_order(data)
+
+        saved = self.db.session.query(Order).filter_by(id="1").one_or_none()
+        assert saved is not None
+
+    def test_update_order_products_returns_data(self):
+        order_id = self.seed_order()
+        order_detail = (
+            self.db.session.query(OrderDetail).filter_by(order_id=order_id).first()
+        )
+
+        with self.app.test_request_context():
+            result = self.domain.update_order_products(
+                order_id=order_detail.order_id,
+                product_id=order_detail.product_id,
+                quantity=3,
+            )
+            assert result["quantity"] == 3
+
+    def test_update_nonexistent_item_raises_404(self):
+        with self.app.test_request_context():
+            with pytest.raises(NotFound):
+                self.domain.update_order_products(
+                    order_id=999, product_id=1, quantity=3
+                )
