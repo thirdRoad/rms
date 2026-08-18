@@ -56,12 +56,13 @@ class OrderDetailsRepository(BaseRepository[OrderDetail]):
         if item:
             item.quantity = quantity
         else:
-            new_item = OrderDetail(
+            item = OrderDetail(
                 order_id=order_id,
                 product_id=product_id,
                 quantity=quantity,
                 unit_price=unit_price,
             )
-            db.session.add(new_item)
+            db.session.add(item)
 
         db.session.flush()
+        return item

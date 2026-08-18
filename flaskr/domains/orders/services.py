@@ -72,10 +72,10 @@ class OrderService(BaseService):
         if product is None:
             abort(404, description="Product not found")
 
-        self.repository.update_order_products(
+        item = self.repository.update_order_products(
             order_id=order_id, product_id=product_id, quantity=quantity
         )
-        return self.get_by_id(item_id=order_id)
+        return [item.serialize]
 
     # delete order details fonks
     def delete_order_products(self, item_id: int) -> bool:
