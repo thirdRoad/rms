@@ -19,7 +19,7 @@ class OrderService(BaseService):
     table_repo = TableRepository()
     user_repo = UserRepository()
 
-    def get_by_id(self, item_id: int) -> Any | None:
+    def get_by_id(self, item_id: int) -> Dict | None:
         order = self.repository.get_by_id(item_id=item_id)
 
         if order is None:
@@ -48,7 +48,7 @@ class OrderService(BaseService):
 
         return response
 
-    def create_new_order(self, data: Dict[str, Any]):
+    def create_new_order(self, data: Dict[str, Any]) -> Any | None:
 
         user = self.user_repo.get_by_id(data["user_id"])
 
@@ -63,7 +63,9 @@ class OrderService(BaseService):
         return self.repository.add(data=data)
 
     # update orderDetails products and quantity
-    def update_order_products(self, order_id: int, product_id: int, quantity: int):
+    def update_order_product(
+        self, order_id: int, product_id: int, quantity: int
+    ) -> Dict:
         order = self.repository.get_by_id(order_id)
         if order is None:
             abort(404, description="Order not found")
@@ -72,10 +74,10 @@ class OrderService(BaseService):
         if product is None:
             abort(404, description="Product not found")
 
-        item = self.repository.update_order_products(
+        item = self.repository.update_order_product(
             order_id=order_id, product_id=product_id, quantity=quantity
         )
-        return [item.serialize]
+        return item.serialize
 
     # delete order details fonks
     def delete_order_products(self, item_id: int) -> bool:
