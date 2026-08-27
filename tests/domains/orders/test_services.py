@@ -196,7 +196,7 @@ class TestOrdersService(BaseTestCase):
         saved = self.db.session.query(Order).filter_by(id="1").one_or_none()
         assert saved is not None
 
-    def test_s_returns_data(self):
+    def test_update_order_products_returns_data(self):
         order_id = self.seed_order()
         order_detail = (
             self.db.session.query(OrderDetail).filter_by(order_id=order_id).first()

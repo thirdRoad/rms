@@ -48,7 +48,7 @@ class OrderService(BaseService):
 
         return response
 
-    def create_new_order(self, data: Dict[str, Any]) -> Any | None:
+    def create_new_order(self, data: Dict[str, Any]) -> Dict[str, Any]:
 
         user = self.user_repo.get_by_id(data["user_id"])
 
@@ -60,12 +60,13 @@ class OrderService(BaseService):
         if table is None:
             abort(404, description="Table not found")
 
-        return self.repository.add(data=data)
+        order = self.repository.add(data=data)
+        return order.serialize
 
     # update orderDetails products and quantity
     def update_order_product(
         self, order_id: int, product_id: int, quantity: int
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         order = self.repository.get_by_id(order_id)
         if order is None:
             abort(404, description="Order not found")

@@ -50,7 +50,7 @@ class OrderDetailsRepository(BaseRepository[OrderDetail]):
 
     def upsert_item(
         self, order_id: int, product_id: int, quantity: int, unit_price: float
-    ):
+    ) -> OrderDetail:
         item = db.session.get(self.model, (order_id, product_id))
 
         if item:
