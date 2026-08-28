@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+import secrets
 
 # https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY
 
@@ -46,6 +47,8 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
+    SECRET_KEY = secrets.token_urlsafe(32)
+    JWT_SECRET_KEY = secrets.token_urlsafe(32)
 
 
 class ProductionConfig(Config):

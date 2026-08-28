@@ -2,17 +2,57 @@ name: Git Flow Check
 
 on:
   pull_request:
-    branches: [master]
+    types: [opened, synchronize, reopened, edited]
+    branches: [master, develop]
 
 jobs:
   check-source-branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify PR source is develop
+      - name: Verify branch flow
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
         run: |
-          BRANCH="${{ github.head_ref }}"
-          if [ "$BRANCH" != "develop" ]; then
-            echo "::error::master branch'ine sadece develop'tan merge edilebilir. Bu PR'in source branch'i: $BRANCH"
+          fail() {
+            echo "::error title=Git Flow violation::$1"
+            {
+              echo "### ❌ Git Flow violation"
+              echo ""
+              echo "**\`$HEAD\` → \`$BASE\`** is not an allowed merge path."
+              echo ""
+              echo "$1"
+              echo ""
+              echo "**How to fix:** change this PR's base branch, or open it from a branch that is allowed to target \`$BASE\`."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 1
-          fi
-          echo "OK: develop -> master"
+          }
+
+          pass() {
+            echo "✅ $HEAD -> $BASE"
+            {
+              echo "### ✅ Git Flow check passed"
+              echo ""
+              echo "**\`$HEAD\` → \`$BASE\`** is an allowed merge path."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+
+          case "$BASE" in
+            master)
+              if [ "$HEAD" = "develop" ]; then
+                pass
+              fi
+              fail "Only 'develop' can be merged into 'master'. This PR's source branch is '$HEAD'. Feature work must go through 'develop' first."
+              ;;
+            develop)
+              case "$HEAD" in
+                master)
+                  fail "'master' cannot be merged back into 'develop' through a pull request. Sync release commits locally instead." ;;
+                develop)
+                  fail "A branch named 'develop' cannot target 'develop'." ;;
+                *)
+                  pass ;;
+              esac
+              ;;
+          esac
