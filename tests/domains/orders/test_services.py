@@ -203,16 +203,15 @@ class TestOrdersService(BaseTestCase):
         )
 
         with self.app.test_request_context():
-            result = self.domain.update_order_products(
+            result = self.domain.update_order_product(
                 order_id=order_detail.order_id,
                 product_id=order_detail.product_id,
                 quantity=3,
             )
+
             assert result["quantity"] == 3
 
     def test_update_nonexistent_item_raises_404(self):
         with self.app.test_request_context():
             with pytest.raises(NotFound):
-                self.domain.update_order_products(
-                    order_id=999, product_id=1, quantity=3
-                )
+                self.domain.update_order_product(order_id=999, product_id=1, quantity=3)

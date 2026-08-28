@@ -4,6 +4,7 @@ from typing_extensions import override
 
 from flaskr.core.base.repository import BaseRepository
 from flaskr.core.extensions import db
+from flaskr.domains.orderDetails.models import OrderDetail
 from flaskr.domains.orderDetails.repository import OrderDetailsRepository
 from flaskr.domains.orders.models import Order
 from flaskr.domains.product.repositories import ProductRepository
@@ -15,7 +16,7 @@ class OrderRepository(BaseRepository[Order]):
     order_detail_repo = OrderDetailsRepository()
 
     @override
-    def add(self, data: Dict[str, Any]) -> Any | None:
+    def add(self, data: Dict[str, Any]) -> Order:
         order = Order(
             user_id=data["user_id"],
             table_id=data["table_id"],
@@ -40,7 +41,7 @@ class OrderRepository(BaseRepository[Order]):
 
         db.session.commit()
 
-        return order.serialize
+        return order
 
     def delete_order_products(
         self, order_id: int
@@ -55,7 +56,9 @@ class OrderRepository(BaseRepository[Order]):
 
         # update orderDetails products and quantity
 
-    def update_order_products(self, order_id: int, product_id: int, quantity: int):
+    def update_order_product(
+        self, order_id: int, product_id: int, quantity: int
+    ) -> OrderDetail:
         product = self.product_repo.get_by_id(product_id)
         item = self.order_detail_repo.upsert_item(
             order_id=order_id,
